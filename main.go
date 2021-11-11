@@ -9,8 +9,8 @@ import (
 	"strings"
 
 	"github.com/bombsimon/logrusr/v2"
-	"github.com/pjbgf/go-libapparmor/pkg/apparmor"
-	"github.com/pjbgf/go-libapparmor/pkg/hostop"
+	"github.com/pjbgf/go-apparmor/pkg/apparmor"
+	"github.com/pjbgf/go-apparmor/pkg/hostop"
 	"github.com/sirupsen/logrus"
 )
 
