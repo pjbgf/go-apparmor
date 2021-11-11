@@ -2,7 +2,7 @@ GO ?= go
 GCC ?= gcc
 DOCKER ?= docker
 IMAGE_TAG ?= paulinhu/go-apparmor:1
-PROFILE_PATH ?= $(realpath ./sample/test-profile.aa)
+PROFILE_PATH ?= $(realpath ./example/profiles/test-profile.aa)
 
 OUTDIR := build
 
@@ -16,7 +16,7 @@ image:
 
 .PHONY: build
 build:
-	$(GO) build -ldflags '$(LDFLAGS)' -o $(OUTDIR)/$(BINARY) main.go
+	$(GO) build -ldflags '$(LDFLAGS)' -o $(OUTDIR)/$(BINARY) ./example/code/main.go
 
 run: build
 	sudo $(OUTDIR)/$(BINARY) $(PROFILE_PATH)
