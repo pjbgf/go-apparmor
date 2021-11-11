@@ -1,4 +1,4 @@
-module github.com/pjbgf/go-libapparmor
+module github.com/pjbgf/go-apparmor
 
 go 1.17
 
