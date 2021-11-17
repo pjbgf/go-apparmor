@@ -21,6 +21,10 @@ import (
 	"github.com/go-logr/logr"
 )
 
+const (
+	modulePath string = "/sys/module/apparmor"
+)
+
 var (
 	findAppArmorParser sync.Once
 	appArmorParserPath string
@@ -33,7 +37,7 @@ func NewAppArmor(logger logr.Logger) *AppArmor {
 // Enforceable checks whether AppArmor is installed, enabled and that
 // policies are enforceable.
 func (a *AppArmor) Enforceable() bool {
-	return true
+	return aaModuleLoaded()
 }
 
 // DeletePolicy removes an AppArmor policy from the kernel.
@@ -147,4 +151,10 @@ func hasEnoughPrivileges() (bool, error) {
 	}
 
 	return false, errors.New(errMessage)
+}
+
+// moduleLoaded checks whether the AppArmor module is loaded into the kernel.
+func aaModuleLoaded() bool {
+	_, err := os.Stat(modulePath)
+	return err != nil
 }
