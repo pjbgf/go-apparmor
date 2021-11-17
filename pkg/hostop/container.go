@@ -29,6 +29,29 @@ func InsideContainer() bool {
 			return true
 		}
 	}
+	return checkCgroup()
+}
+
+// checkCgroup checks the cgroup file for the crio signature
+// this is a temporary fix until support is added upstream.
+func checkCgroup() bool {
+	f, err := os.Open("/proc/self/cgroup")
+	if err != nil {
+		return false
+	}
+	defer f.Close()
+
+	scanner := bufio.NewScanner(f)
+
+	for scanner.Scan() {
+		if strings.Contains(scanner.Text(), "crio-") {
+			return true
+		}
+
+		if err := scanner.Err(); err != nil {
+			break
+		}
+	}
 	return false
 }
 
