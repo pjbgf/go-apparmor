@@ -31,7 +31,7 @@ func main() {
 	).WithCallDepth(0)
 
 	calls := func() error {
-		aa := apparmor.NewAppArmor(logger)
+		aa := apparmor.NewAppArmor().WithLogger(&logger)
 
 		fmt.Println("Delete Policy...")
 		if err := aa.DeletePolicy(profileName); err != nil {
@@ -45,7 +45,7 @@ func main() {
 		return nil
 	}
 
-	mount := hostop.NewMountHostOp(logger)
+	mount := hostop.NewMountHostOp().WithLogger(&logger)
 	if err := mount.Do(calls); err != nil {
 		fmt.Printf("ERROR: %v\n", err)
 	}

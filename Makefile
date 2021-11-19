@@ -22,7 +22,7 @@ run: build
 	sudo $(OUTDIR)/$(BINARY) $(PROFILE_PATH)
 
 run-container:
-	docker run --rm -it --privileged --pid host paulinhu/go-apparmor:1 /app/go-apparmor $(PROFILE_PATH)
+	docker run --rm -it --privileged --pid host $(IMAGE_TAG) /app/go-apparmor $(PROFILE_PATH)
 
 load-profile:
 	sudo apparmor_parser -R $(PROFILE_PATH) | true

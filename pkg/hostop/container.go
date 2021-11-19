@@ -2,7 +2,6 @@ package hostop
 
 import (
 	"bufio"
-	"fmt"
 	"os"
 	"strings"
 )
@@ -55,17 +54,15 @@ func checkCgroup() bool {
 	return false
 }
 
-// hostPidNamespace checks whether the current process is using
+// HostPidNamespace checks whether the current process is using
 // host's PID namespace.
-func (m *mountHostOp) hostPidNamespace() (bool, error) {
+func HostPidNamespace() (bool, error) {
 	file, err := os.Open("/proc/1/sched")
 	if err != nil {
 		return false, err
 	}
 	defer func() {
-		if err := file.Close(); err != nil {
-			m.logger.V(1).Info(fmt.Sprintf("closing file: %s", err))
-		}
+		file.Close()
 	}()
 
 	scanner := bufio.NewScanner(file)

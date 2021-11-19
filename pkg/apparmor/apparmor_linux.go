@@ -17,8 +17,6 @@ import (
 	"path/filepath"
 	"sync"
 	"unsafe"
-
-	"github.com/go-logr/logr"
 )
 
 const (
@@ -29,10 +27,6 @@ var (
 	findAppArmorParser sync.Once
 	appArmorParserPath string
 )
-
-func NewAppArmor(logger logr.Logger) *AppArmor {
-	return &AppArmor{logger: logger}
-}
 
 // Enforceable checks whether AppArmor is installed, enabled and that
 // policies are enforceable.
@@ -46,7 +40,7 @@ func (a *AppArmor) DeletePolicy(policyName string) error {
 		return err
 	}
 
-	a.logger.V(2).Info(fmt.Sprintf("policy name: %s", policyName))
+	a.infoOrIgnore(2, fmt.Sprintf("policy name: %s", policyName))
 
 	var kernel_interface *C.aa_kernel_interface
 
@@ -77,7 +71,7 @@ func (a *AppArmor) LoadPolicy(fileName string) error {
 		return fmt.Errorf("cannot find apparmor_parser")
 	}
 
-	a.logger.V(2).Info(fmt.Sprintf("policy file: %s", fileName))
+	a.infoOrIgnore(2, fmt.Sprintf("policy file: %s", fileName))
 	fileName, err := filepath.Abs(fileName)
 	if err != nil {
 		return fmt.Errorf("cannot get abs from file")
@@ -89,12 +83,12 @@ func (a *AppArmor) LoadPolicy(fileName string) error {
 	}
 	defer func() {
 		if err := fd.Close(); err != nil {
-			a.logger.V(1).Info(fmt.Sprintf("closing file: %s", err))
+			a.infoOrIgnore(1, fmt.Sprintf("closing file: %s", err))
 		}
 	}()
 
 	cmd := exec.Command(parserPath, fileName, "-o", fd.Name())
-	a.logger.V(2).Info(fmt.Sprintf("transform policy into binary: %s", cmd.Args))
+	a.infoOrIgnore(2, fmt.Sprintf("transform policy into binary: %s", cmd.Args))
 
 	err = cmd.Run()
 	if err != nil {
@@ -157,4 +151,10 @@ func hasEnoughPrivileges() (bool, error) {
 func aaModuleLoaded() bool {
 	_, err := os.Stat(modulePath)
 	return err != nil
+}
+
+func (a *AppArmor) infoOrIgnore(v int, text string) {
+	if a.logger != nil {
+		a.logger.V(v).Info(text)
+	}
 }
