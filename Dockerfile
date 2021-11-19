@@ -12,3 +12,5 @@ FROM gcr.io/distroless/static
 
 COPY --from=0 /sbin/apparmor_parser /sbin
 COPY --from=0 /work/build /app
+
+ENTRYPOINT [ "/app/go-apparmor" ]

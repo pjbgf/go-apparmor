@@ -17,8 +17,6 @@ import (
 	"path/filepath"
 	"sync"
 	"unsafe"
-
-	"github.com/go-logr/logr"
 )
 
 const (
@@ -29,10 +27,6 @@ var (
 	findAppArmorParser sync.Once
 	appArmorParserPath string
 )
-
-func NewAppArmor(logger logr.Logger) *AppArmor {
-	return &AppArmor{logger: logger}
-}
 
 // Enforceable checks whether AppArmor is installed, enabled and that
 // policies are enforceable.

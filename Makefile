@@ -1,10 +1,13 @@
+SHELL=/bin/bash
+
 GO ?= go
 GCC ?= gcc
 DOCKER ?= docker
 IMAGE_TAG ?= paulinhu/go-apparmor:1
-PROFILE_PATH ?= $(realpath ./example/profiles/test-profile.aa)
 
-OUTDIR := build
+CWD := $(realpath .)
+OUTDIR := $(CWD)/build
+PROFILE_PATH ?= $(CWD)/example/profiles/test-profile.aa
 
 LDFLAGS := -s -w -extldflags "-static"
 BINARY := go-apparmor
@@ -16,18 +19,24 @@ image:
 
 .PHONY: build
 build:
-	$(GO) build -ldflags '$(LDFLAGS)' -o $(OUTDIR)/$(BINARY) ./example/code/main.go
+	pushd example/code && \
+	$(GO) build -ldflags '$(LDFLAGS)' -o $(OUTDIR)/$(BINARY) ./main.go || \
+	popd
 
+.PHONY: run
 run: build
-	sudo $(OUTDIR)/$(BINARY) $(PROFILE_PATH)
+	$(OUTDIR)/$(BINARY) $(PROFILE_PATH)
 
-run-container:
-	docker run --rm -it --privileged --pid host paulinhu/go-apparmor:1 /app/go-apparmor $(PROFILE_PATH)
+.PHONY: run-container
+run-container: image
+	docker run --rm -it --privileged --pid host $(IMAGE_TAG) $(PROFILE_PATH)
 
+.PHONY: load-profile
 load-profile:
-	sudo apparmor_parser -R $(PROFILE_PATH) | true
-	sudo apparmor_parser -Kr $(PROFILE_PATH)
-	sudo grep test-profile /sys/kernel/security/apparmor/profiles
+	apparmor_parser -R $(PROFILE_PATH) | true
+	apparmor_parser -Kr $(PROFILE_PATH)
+	grep test-profile /sys/kernel/security/apparmor/profiles
 
+.PHONY: verify
 verify:
 	$(GOSEC) ./...

@@ -25,10 +25,15 @@ type mountHostOp struct {
 	logger logr.Logger
 }
 
-func NewMountHostOp(log logr.Logger) HostOp {
+func NewMountHostOp() HostOp {
 	return &mountHostOp{
-		logger: log,
+		logger: logr.Discard(),
 	}
+}
+
+func (m *mountHostOp) WithLogger(logger logr.Logger) HostOp {
+	m.logger = logger
+	return m
 }
 
 // Do executes an action ensuring that first thread will be within the host's
@@ -44,7 +49,7 @@ func (m *mountHostOp) Do(action func() error) error {
 	if InsideContainer() {
 		m.logger.V(2).Info("running inside container")
 
-		hostPidNs, err := m.hostPidNamespace()
+		hostPidNs, err := HostPidNamespace()
 		if err != nil {
 			return fmt.Errorf("identifying pid namespace: %w", err)
 		}
@@ -87,7 +92,7 @@ func (m *mountHostOp) containerDo(action func() error) error {
 
 		defer func() {
 			if err := m.switchToMountNs(origFd); err != nil {
-				m.logger.V(2).Error(err, "revert to original mount ns")
+				m.logger.V(2).Info(fmt.Sprintf("revert to original mount ns: %v", err))
 			} else {
 				// if can't switch back to original mount namespace,
 				// fail-safe by not making the thread with host mount
@@ -149,7 +154,7 @@ func (m *mountHostOp) logNsInfo(nsPath string) {
 
 	var s unix.Stat_t
 	if err := unix.Fstat(int(fd.Fd()), &s); err != nil {
-		m.logger.V(2).Error(err, "fstat")
+		m.logger.V(2).Info(fmt.Sprintf("fstat ns: %v", err))
 		return
 	}
 	m.logger.V(2).Info(fmt.Sprintf("dev-inode %d:%d ns path: %s", s.Dev, s.Ino, nsPath))
