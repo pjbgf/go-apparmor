@@ -3,6 +3,6 @@ module github.com/pjbgf/go-apparmor
 go 1.17
 
 require (
-	github.com/go-logr/logr v0.4.0
-	golang.org/x/sys v0.0.0-20211107104306-e0b2ad06fe42
+	github.com/go-logr/logr v1.2.3
+	golang.org/x/sys v0.0.0-20220808155132-1c4a2a72c664
 )
