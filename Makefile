@@ -43,7 +43,7 @@ load-profile:
 	grep test-profile /sys/kernel/security/apparmor/profiles
 
 tidy:
-	go mod tidy
+	$(GO) mod tidy
 	pushd example/code && \
 	$(GO) mod tidy || \
 	popd
