@@ -37,6 +37,12 @@ load-profile:
 	apparmor_parser -Kr $(PROFILE_PATH)
 	grep test-profile /sys/kernel/security/apparmor/profiles
 
+tidy:
+	go mod tidy
+	pushd example/code && \
+	$(GO) mod tidy || \
+	popd
+
 .PHONY: verify
 verify:
 	$(GOSEC) ./...
