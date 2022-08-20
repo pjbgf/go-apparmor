@@ -36,3 +36,7 @@ func (unsupported) DeletePolicy(policyName string) error {
 func (unsupported) LoadPolicy(fileName string) error {
 	return aaNotSupported
 }
+
+func (unsupported) PolicyLoaded(fileName string) (bool, error) {
+	return false, aaNotSupported
+}

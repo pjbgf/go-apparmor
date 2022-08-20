@@ -24,4 +24,7 @@ type aa interface {
 
 	// LoadPolicy loads an AppArmor policy into the kernel.
 	LoadPolicy(fileName string) error
+
+	// PolicyLoaded checks whether a policy is loaded in the kernel.
+	PolicyLoaded(fileName string) (bool, error)
 }

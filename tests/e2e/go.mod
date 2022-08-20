@@ -1,4 +1,4 @@
-module github.com/pjbgf/go-apparmor/example/code
+module github.com/pjbgf/go-apparmor/tests/e2e
 
 go 1.18
 

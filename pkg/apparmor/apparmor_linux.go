@@ -10,12 +10,14 @@ package apparmor
 // #include <sys/apparmor.h>
 import "C"
 import (
+	"bufio"
 	"errors"
 	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"sync"
 	"syscall"
 	"unsafe"
@@ -120,10 +122,6 @@ func (a *AppArmor) AppArmorFS() (string, error) {
 }
 
 func (a *AppArmor) DeletePolicy(policyName string) error {
-	if ok, err := hasEnoughPrivileges(); !ok {
-		return err
-	}
-
 	a.logger.V(2).Info(fmt.Sprintf("policy name: %s", policyName))
 
 	var kernel_interface *C.aa_kernel_interface
@@ -140,15 +138,10 @@ func (a *AppArmor) DeletePolicy(policyName string) error {
 		err = fmt.Errorf("call aa_kernel_interface_remove_policy")
 	}
 	C.aa_kernel_interface_unref(kernel_interface)
-
 	return err
 }
 
 func (a *AppArmor) LoadPolicy(fileName string) error {
-	if ok, err := hasEnoughPrivileges(); !ok {
-		return err
-	}
-
 	parserPath := appArmorParser()
 	if len(parserPath) == 0 {
 		return fmt.Errorf("cannot find apparmor_parser")
@@ -197,6 +190,29 @@ func (a *AppArmor) LoadPolicy(fileName string) error {
 	return err
 }
 
+func profilesFile() string {
+	return "/sys/kernel/security/apparmor/profiles"
+}
+
+func (a *AppArmor) PolicyLoaded(policyName string) (bool, error) {
+	pFile := profilesFile()
+	readFile, err := os.Open(pFile)
+	if err != nil {
+		return false, fmt.Errorf("cannot open file %s: %w", pFile, err)
+	}
+
+	s := bufio.NewScanner(readFile)
+	for s.Scan() {
+		// profiles will be in the format "profile-name (mode: complain/enforce)":
+		// sample-profile (enforce)
+		if strings.HasPrefix(s.Text(), policyName+" (") {
+			return true, nil
+		}
+	}
+
+	return false, nil
+}
+
 func appArmorParser() string {
 	findAppArmorParser.Do(func() {
 		locations := []string{
@@ -211,23 +227,6 @@ func appArmorParser() string {
 		}
 	})
 	return appArmorParserPath
-}
-
-func hasEnoughPrivileges() (bool, error) {
-	euid := os.Geteuid()
-	uid := os.Getuid()
-
-	if uid == 0 && euid == 0 {
-		return true, nil
-	}
-
-	filename := filepath.Base(os.Args[0])
-	errMessage := fmt.Sprintf("%s must run as root", filename)
-	if euid == 0 {
-		return false, errors.New("setuid is not supported")
-	}
-
-	return false, errors.New(errMessage)
 }
 
 // aaParserInstalled checks whether apparmor_parser is installed.

@@ -10,6 +10,11 @@ import (
 )
 
 func TestNewAppArmor(t *testing.T) {
+	previousFunc := goOS
+	defer func() {
+		goOS = previousFunc
+	}()
+
 	expectedCurrent := func() aa {
 		if runtime.GOOS == "linux" {
 			return &AppArmor{}
