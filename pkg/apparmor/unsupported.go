@@ -37,6 +37,6 @@ func (unsupported) LoadPolicy(fileName string) error {
 	return aaNotSupported
 }
 
-func (unsupported) PolicyLoaded(fileName string) (bool, error) {
+func (unsupported) PolicyLoaded(policyName string) (bool, error) {
 	return false, aaNotSupported
 }
