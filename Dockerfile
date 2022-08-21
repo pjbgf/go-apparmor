@@ -1,7 +1,7 @@
 FROM golang:1.19-alpine
 
 RUN apk add gcc build-base \
-    apparmor apparmor-utils libapparmor libapparmor-dev
+    apparmor-utils libapparmor libapparmor-dev
 
 ADD . /work
 WORKDIR /work

@@ -27,6 +27,11 @@ import (
 
 const (
 	modulePath string = "/sys/module/apparmor"
+	// enabledFile is the path to the file that indicates whether apparmor is enabled.
+	enabledFile string = "/sys/module/apparmor/parameters/enabled"
+
+	// profilesPath stores the path to the file which contains all loaded profiles.
+	profilesPath string = "/sys/kernel/security/apparmor/profiles"
 )
 
 var (
@@ -68,27 +73,15 @@ func (a *AppArmor) WithLogger(logger logr.Logger) aa {
 }
 
 func (a *AppArmor) Enabled() (bool, error) {
-	e := C.aa_is_enabled()
-	if e == 0 {
+	f, err := os.ReadFile(enabledFile)
+	if err != nil {
+		return false, fmt.Errorf("cannot read file %s: %w", enabledFile, err)
+	}
+	if strings.Contains(string(f), "Y") {
 		return true, nil
 	}
 
-	switch syscall.Errno(e) {
-	case syscall.ENOSYS:
-		return false, aaExtensionsNotAvailableErr
-	case syscall.ECANCELED:
-		return false, aaDisabledAtBootErr
-	case syscall.ENOENT:
-		return false, aaInterfaceUnavailableErr
-	case syscall.ENOMEM:
-		return false, aaInsufficientMemoryErr
-	case syscall.EPERM:
-		return false, aaPermissionDeniedErr
-	case syscall.EACCES:
-		return false, aaPermissionDeniedErr
-	default:
-		return false, fmt.Errorf("checking appArmor status: %w", aaCannotCompleteOperationErr)
-	}
+	return false, nil
 }
 
 func (a *AppArmor) Enforceable() (bool, error) {

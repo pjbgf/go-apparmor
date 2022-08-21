@@ -47,11 +47,9 @@ func main() {
 		aa := apparmor.NewAppArmor().WithLogger(logger)
 		enabled, err := aa.Enabled()
 		if err != nil {
-			return fmt.Errorf("failed to check AppArmor status: %v", err)
+			return fmt.Errorf("failed to get AppArmor status: %v", err)
 		}
-		if !enabled {
-			fmt.Printf("AppArmor is not enabled\n")
-		}
+		logger.Info("apparmor status", "enabled", enabled)
 
 		logger.Info("loading policy", "policy-name", validPolicyName)
 		if err := aa.LoadPolicy(f.Name()); err != nil {
