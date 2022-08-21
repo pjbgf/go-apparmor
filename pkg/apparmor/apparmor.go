@@ -8,11 +8,6 @@ type aa interface {
 	// WithLogger sets a logger to be using whilst executing operations.
 	WithLogger(logger logr.Logger) aa
 
-
-	// AppArmorFS returns the path where the AppArmor filesystem
-	// was mounted.
-	AppArmorFS() (string, error)
-
 	aaReader
 	aaWriter
 }

@@ -25,10 +25,6 @@ func (unsupported) Enforceable() (bool, error) {
 	return false, aaNotSupported
 }
 
-func (unsupported) AppArmorFS() (string, error) {
-	return "", aaNotSupported
-}
-
 func (unsupported) DeletePolicy(policyName string) error {
 	return aaNotSupported
 }

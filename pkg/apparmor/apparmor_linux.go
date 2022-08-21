@@ -93,27 +93,6 @@ func (a *AppArmor) Enforceable() (bool, error) {
 	return enabled && aaParserInstalled(), nil
 }
 
-func (a *AppArmor) AppArmorFS() (string, error) {
-	aaFS := C.CString("")
-	defer C.free(unsafe.Pointer(aaFS))
-
-	e := C.aa_find_mountpoint(&aaFS)
-	if e == 0 {
-		return C.GoString(aaFS), nil
-	}
-
-	switch syscall.Errno(e) {
-	case syscall.ENOENT:
-		return C.GoString(aaFS), aaFSNotFoundErr
-	case syscall.ENOMEM:
-		return C.GoString(aaFS), aaInsufficientMemoryErr
-	case syscall.EACCES:
-		return C.GoString(aaFS), aaAccessToPathDeniedErr
-	default:
-		return C.GoString(aaFS), fmt.Errorf("appArmor mount point: %w", aaCannotCompleteOperationErr)
-	}
-}
-
 func (a *AppArmor) DeletePolicy(policyName string) error {
 	a.logger.V(2).Info(fmt.Sprintf("policy name: %s", policyName))
 
