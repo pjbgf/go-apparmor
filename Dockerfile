@@ -1,16 +1,18 @@
-FROM golang:1.17-bullseye
+FROM golang:1.19-alpine
 
-RUN apt update && apt install -y apparmor-utils libapparmor-dev
+RUN apk add gcc build-base \
+    apparmor-utils libapparmor libapparmor-dev
 
 ADD . /work
-WORKDIR /work
-RUN make build
+WORKDIR /work/tests/e2e
 
+RUN go mod download
 
+RUN go build -tags apparmor \
+    -ldflags '-s -w -extldflags "-static"' \
+    -o /work/build/e2e main.go
 
-FROM gcr.io/distroless/static
-
-COPY --from=0 /sbin/apparmor_parser /sbin
-COPY --from=0 /work/build /app
-
-ENTRYPOINT [ "/app/go-apparmor" ]
+# E2E tests must be running as root, as it also verifies
+# hostop privileges.
+USER root
+ENTRYPOINT [ "/work/build/e2e" ]

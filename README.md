@@ -18,12 +18,14 @@ Permissions required:
 - Host's PID namespace
 - Host's Mount namespace
 - run as root
-- CAP_SYS_ADMIN
+- `CAP_SYS_ADMIN`
 - privileged (for containers)
+
+Running directly on the host machine as `root` is enough.
 
 ## Next steps
 
 - [] Implement Enforceable() and a func to check whether a profile is already loaded.
 - [] Split hostop package from this repo.
-- [] Refactor apparmor package.
-- [] Add some tests.
+- [x] Refactor apparmor package.
+- [x] Add some tests.

@@ -7,28 +7,24 @@ on:
 name: build
 jobs:
 
-  ubuntu:
-    runs-on: ubuntu-latest
+  tests:
+    strategy:
+      matrix:
+        os: [ ubuntu-latest, macos-latest ]
+        include:
+          - os: ubuntu-latest
+            libapparmor: true
+    runs-on: ${{ matrix.os }}
+    continue-on-error: true
     steps:
     - uses: actions/checkout@v2
-    - name: Install libapparmor-dev
+    - if: ${{ matrix.libapparmor }}
+      name: Install libapparmor-dev
       run: sudo apt-get install -y libapparmor-dev
     - name: Build
-      run: |
-        make build
-    - name: Build Example Code
-      run: |
-        make example
-
-  macos:
-    runs-on: macos-latest
-    env:
-      BUILD_TAGS: "netgo"
-    steps:
-    - uses: actions/checkout@v2
-    - name: Build
-      run: |
-        make build
-    - name: Build Example Code
-      run: |
-        make example
+      run: make build
+    - name: Tests
+      run: make test
+    - if: ${{ matrix.libapparmor }}
+      name: E2E Tests
+      run: make e2e

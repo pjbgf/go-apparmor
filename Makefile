@@ -3,51 +3,34 @@ SHELL=/bin/bash
 GO ?= go
 GCC ?= gcc
 DOCKER ?= docker
-IMAGE_TAG ?= paulinhu/go-apparmor:1
 BUILD_TAGS ?= apparmor
+
+IMAGE_TAG = quay.io/paulinhu/go-apparmor/e2e:local
 
 CWD := $(realpath .)
 OUTDIR := $(CWD)/build
-PROFILE_PATH ?= $(CWD)/example/profiles/test-profile.aa
 
 LDFLAGS := -s -w -extldflags "-static"
 BINARY := go-apparmor
 GOSEC := gosec
 
-.PHONY: image
-image:
-	$(DOCKER) build -t $(IMAGE_TAG) .
 
 .PHONY: build
 build:
 	$(GO) build -tags $(BUILD_TAGS) ./...
 
-.PHONY: example
-example:
-	pushd example/code && \
-	$(GO) build -ldflags '$(LDFLAGS)' -o $(OUTDIR)/$(BINARY) ./main.go || \
-	popd
-
-.PHONY: run
-run: build
-	$(OUTDIR)/$(BINARY) $(PROFILE_PATH)
-
-.PHONY: run-container
-run-container: image
-	docker run --rm -it --privileged --pid host $(IMAGE_TAG) $(PROFILE_PATH)
-
-.PHONY: load-profile
-load-profile:
-	apparmor_parser -R $(PROFILE_PATH) | true
-	apparmor_parser -Kr $(PROFILE_PATH)
-	grep test-profile /sys/kernel/security/apparmor/profiles
-
 tidy:
 	$(GO) mod tidy
-	pushd example/code && \
+	pushd tests/e2e && \
 	$(GO) mod tidy || \
 	popd
 
-.PHONY: verify
-verify:
+verify: tidy
 	$(GOSEC) ./...
+
+test:
+	$(GO) test -tags $(BUILD_TAGS) ./...
+
+e2e:
+	$(DOCKER) build -t $(IMAGE_TAG) .
+	$(DOCKER) run --rm --privileged --pid host $(IMAGE_TAG)
