@@ -50,8 +50,7 @@ func main() {
 			return fmt.Errorf("failed to write policy file: %v", err)
 		}
 
-		aa := apparmor.NewAppArmor(
-			apparmor.WithLogger(logger), apparmor.WithPolicyDir(tmpDir))
+		aa := apparmor.NewAppArmor(apparmor.WithLogger(logger))
 
 		enabled, err := aa.Enabled()
 		if err != nil {

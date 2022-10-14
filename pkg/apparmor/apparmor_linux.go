@@ -11,7 +11,6 @@ package apparmor
 import "C"
 import (
 	"bufio"
-	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -47,34 +46,19 @@ var goOS = func() string {
 // NewAppArmor creates a new instance of the apparmor API.
 func NewAppArmor(opts ...AppArmorOption) aa {
 	if goOS() == "linux" {
-		return &AppArmor{
-			logger:      logr.Discard(),
-			policiesDir: defaultPoliciesDir,
+		o := &appArmorOpts{
+			logger: logr.Discard(),
 		}
+		o.applyOpts(opts...)
+
+		return &AppArmor{opts: o}
 	}
 
 	return &unsupported{}
 }
 
 type AppArmor struct {
-	logger      logr.Logger
-	policiesDir string
-}
-
-func (a *AppArmor) WithPolicyDir(dir string) (aa, error) {
-	if dir == "" {
-		return nil, errors.New("policy directory cannot be empty")
-	}
-	f, err := os.Stat(dir)
-	if os.IsNotExist(err) {
-		return nil, fmt.Errorf("policy directory %s does not exist", dir)
-	}
-	if !f.IsDir() {
-		return nil, fmt.Errorf("policy directory %s is not a directory", dir)
-	}
-
-	a.policiesDir = dir
-	return a, nil
+	opts *appArmorOpts
 }
 
 func (a *AppArmor) Enabled() (bool, error) {
@@ -99,7 +83,7 @@ func (a *AppArmor) Enforceable() (bool, error) {
 }
 
 func (a *AppArmor) DeletePolicy(policyName string) error {
-	a.logger.V(2).Info(fmt.Sprintf("policy name: %s", policyName))
+	a.opts.logger.V(2).Info(fmt.Sprintf("policy name: %s", policyName))
 
 	var kernel_interface *C.aa_kernel_interface
 
@@ -124,7 +108,7 @@ func (a *AppArmor) LoadPolicy(fileName string) error {
 		return fmt.Errorf("cannot find apparmor_parser")
 	}
 
-	a.logger.V(2).Info(fmt.Sprintf("policy file: %s", fileName))
+	a.opts.logger.V(2).Info(fmt.Sprintf("policy file: %s", fileName))
 	fileName, err := filepath.Abs(fileName)
 	if err != nil {
 		return fmt.Errorf("cannot get abs from file")
@@ -136,12 +120,12 @@ func (a *AppArmor) LoadPolicy(fileName string) error {
 	}
 	defer func() {
 		if err := fd.Close(); err != nil {
-			a.logger.V(1).Info(fmt.Sprintf("closing file: %s", err))
+			a.opts.logger.V(1).Info(fmt.Sprintf("closing file: %s", err))
 		}
 	}()
 
 	cmd := exec.Command(parserPath, fileName, "-o", fd.Name())
-	a.logger.V(2).Info(fmt.Sprintf("transform policy into binary: %s", cmd.Args))
+	a.opts.logger.V(2).Info(fmt.Sprintf("transform policy into binary: %s", cmd.Args))
 
 	err = cmd.Run()
 	if err != nil {

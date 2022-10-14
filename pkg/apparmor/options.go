@@ -17,16 +17,9 @@ func (a *appArmorOpts) applyOpts(opts ...AppArmorOption) {
 	}
 }
 
-// WithLogger sets a logger to be using whilst executing operations.
+// WithLogger sets a logger to be used whilst executing operations.
 func WithLogger(logger logr.Logger) AppArmorOption {
 	return func(o *appArmorOpts) {
 		o.logger = logger
-	}
-}
-
-// WithPolicyDir sets the directory to be used to manage policies.
-func WithPolicyDir(dir string) AppArmorOption {
-	return func(o *appArmorOpts) {
-		o.policyDir = dir
 	}
 }
