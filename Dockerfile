@@ -12,4 +12,7 @@ RUN go build -tags apparmor \
     -ldflags '-s -w -extldflags "-static"' \
     -o /work/build/e2e main.go
 
+# E2E tests must be running as root, as it also verifies
+# hostop privileges.
+USER root
 ENTRYPOINT [ "/work/build/e2e" ]
