@@ -4,9 +4,11 @@ RUN apk add gcc build-base \
     apparmor-utils libapparmor libapparmor-dev
 
 ADD . /work
-WORKDIR /work
-RUN cd tests/e2e && \
-    go build -tags apparmor \
+WORKDIR /work/tests/e2e
+
+RUN go mod download
+
+RUN go build -tags apparmor \
     -ldflags '-s -w -extldflags "-static"' \
     -o /work/build/e2e main.go
 

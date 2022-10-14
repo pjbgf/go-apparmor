@@ -2,19 +2,13 @@ package apparmor
 
 import (
 	"errors"
-
-	"github.com/go-logr/logr"
 )
 
 var (
-	aaNotSupported = errors.New("appArmor is not supported by the underlying OS")
+	aaNotSupported = errors.New("appArmor is not enabled or not supported by the underlying OS")
 )
 
 type unsupported struct {
-}
-
-func (a unsupported) WithLogger(l logr.Logger) aa {
-	return a
 }
 
 func (unsupported) Enabled() (bool, error) {

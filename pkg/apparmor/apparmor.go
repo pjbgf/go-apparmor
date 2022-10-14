@@ -1,13 +1,6 @@
 package apparmor
 
-import (
-	"github.com/go-logr/logr"
-)
-
 type aa interface {
-	// WithLogger sets a logger to be using whilst executing operations.
-	WithLogger(logger logr.Logger) aa
-
 	aaReader
 	aaWriter
 }

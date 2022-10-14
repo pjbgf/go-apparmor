@@ -19,13 +19,14 @@ import (
 	"runtime"
 	"strings"
 	"sync"
-	"syscall"
 	"unsafe"
 
 	"github.com/go-logr/logr"
 )
 
 const (
+	defaultPoliciesDir = "/etc/apparmor.d"
+
 	modulePath string = "/sys/module/apparmor"
 	// enabledFile is the path to the file that indicates whether apparmor is enabled.
 	enabledFile string = "/sys/module/apparmor/parameters/enabled"
@@ -37,15 +38,6 @@ const (
 var (
 	findAppArmorParser sync.Once
 	appArmorParserPath string
-
-	aaExtensionsNotAvailableErr  = errors.New("appArmor extensions to the system are not available")
-	aaDisabledAtBootErr          = errors.New("appArmor is available on the system but has been disabled at boot")
-	aaInterfaceUnavailableErr    = errors.New("appArmor is available but the interface is not available")
-	aaInsufficientMemoryErr      = errors.New("insufficient memory was available")
-	aaPermissionDeniedErr        = errors.New("missing sufficient permissions to determine if AppArmor is enabled")
-	aaCannotCompleteOperationErr = errors.New("could not complete operation")
-	aaAccessToPathDeniedErr      = errors.New("access to the required paths was denied")
-	aaFSNotFoundErr              = errors.New("appArmor filesystem mount could not be found")
 )
 
 var goOS = func() string {
@@ -53,10 +45,11 @@ var goOS = func() string {
 }
 
 // NewAppArmor creates a new instance of the apparmor API.
-func NewAppArmor() aa {
+func NewAppArmor(opts ...AppArmorOption) aa {
 	if goOS() == "linux" {
 		return &AppArmor{
-			logger: logr.Discard(),
+			logger:      logr.Discard(),
+			policiesDir: defaultPoliciesDir,
 		}
 	}
 
@@ -64,12 +57,24 @@ func NewAppArmor() aa {
 }
 
 type AppArmor struct {
-	logger logr.Logger
+	logger      logr.Logger
+	policiesDir string
 }
 
-func (a *AppArmor) WithLogger(logger logr.Logger) aa {
-	a.logger = logger
-	return a
+func (a *AppArmor) WithPolicyDir(dir string) (aa, error) {
+	if dir == "" {
+		return nil, errors.New("policy directory cannot be empty")
+	}
+	f, err := os.Stat(dir)
+	if os.IsNotExist(err) {
+		return nil, fmt.Errorf("policy directory %s does not exist", dir)
+	}
+	if !f.IsDir() {
+		return nil, fmt.Errorf("policy directory %s is not a directory", dir)
+	}
+
+	a.policiesDir = dir
+	return a, nil
 }
 
 func (a *AppArmor) Enabled() (bool, error) {
@@ -162,15 +167,10 @@ func (a *AppArmor) LoadPolicy(fileName string) error {
 	return err
 }
 
-func profilesFile() string {
-	return "/sys/kernel/security/apparmor/profiles"
-}
-
 func (a *AppArmor) PolicyLoaded(policyName string) (bool, error) {
-	pFile := profilesFile()
-	readFile, err := os.Open(pFile)
+	readFile, err := os.Open(profilesPath)
 	if err != nil {
-		return false, fmt.Errorf("cannot open file %s: %w", pFile, err)
+		return false, fmt.Errorf("cannot open file %s: %w", profilesPath, err)
 	}
 
 	s := bufio.NewScanner(readFile)

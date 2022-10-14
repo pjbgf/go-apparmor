@@ -5,6 +5,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/bombsimon/logrusr/v2"
 	"github.com/pjbgf/go-apparmor/pkg/apparmor"
@@ -33,18 +34,25 @@ func main() {
 	logger.Info("Start E2E apparmor test")
 
 	calls := func() error {
-		f, err := os.CreateTemp("", "test-policy-*.aa")
+		dir, err := os.MkdirTemp(os.TempDir(), "aa-profiles-*")
 		if err != nil {
-			return fmt.Errorf("failed to create policy file: %v", err)
+			return err
 		}
-		defer os.Remove(f.Name())
+		tmp, err := os.CreateTemp(dir, "*.aa")
+		if err != nil {
+			return fmt.Errorf("failed to create policy dir %v", err)
+		}
+		tmpDir := filepath.Dir(tmp.Name())
+		defer os.RemoveAll(tmpDir)
 
-		_, err = f.WriteString(validPolicyContent)
+		_, err = tmp.WriteString(validPolicyContent)
 		if err != nil {
 			return fmt.Errorf("failed to write policy file: %v", err)
 		}
 
-		aa := apparmor.NewAppArmor().WithLogger(logger)
+		aa := apparmor.NewAppArmor(
+			apparmor.WithLogger(logger), apparmor.WithPolicyDir(tmpDir))
+
 		enabled, err := aa.Enabled()
 		if err != nil {
 			return fmt.Errorf("failed to get AppArmor status: %v", err)
@@ -52,7 +60,7 @@ func main() {
 		logger.Info("apparmor status", "enabled", enabled)
 
 		logger.Info("loading policy", "policy-name", validPolicyName)
-		if err := aa.LoadPolicy(f.Name()); err != nil {
+		if err := aa.LoadPolicy(tmp.Name()); err != nil {
 			return fmt.Errorf("load policy: %w", err)
 		}
 
