@@ -25,7 +25,7 @@ tidy:
 	$(GO) mod tidy || \
 	popd
 
-verify:
+verify: tidy
 	$(GOSEC) ./...
 
 test:
