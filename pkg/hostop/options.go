@@ -40,11 +40,3 @@ func WithAssumeHost() HostOpOption {
 		o.insideContainer = func() bool { return false }
 	}
 }
-
-// WithContainerDetection ensures that HostOp tries to auto detect whether or
-// not the code is being executed from inside a container.
-func WithContainerDetection() HostOpOption {
-	return func(o *hostOpOpts) {
-		o.insideContainer = InsideContainer
-	}
-}

@@ -4,7 +4,7 @@
 package hostop
 
 import (
-	logr "github.com/go-logr/logr"
+	"errors"
 )
 
 var Unsupported = errors.New("hostop is not supported")

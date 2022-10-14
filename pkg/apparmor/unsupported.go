@@ -4,9 +4,7 @@ import (
 	"errors"
 )
 
-var (
-	aaNotSupported = errors.New("appArmor is not enabled or not supported by the underlying OS")
-)
+var aaNotSupported = errors.New("appArmor is not enabled or not supported by the underlying OS")
 
 type unsupported struct {
 }

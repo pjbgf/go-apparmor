@@ -33,4 +33,4 @@ test:
 
 e2e:
 	$(DOCKER) build -t $(IMAGE_TAG) .
-	$(DOCKER) run --rm -it --privileged --pid host $(IMAGE_TAG)
+	$(DOCKER) run --rm --privileged --pid host $(IMAGE_TAG)
