@@ -86,7 +86,7 @@ func main() {
 		return nil
 	}
 
-	mount := hostop.NewMountHostOp().WithLogger(logger)
+	mount := hostop.NewMountHostOp(hostop.WithLogger(logger))
 	if err := mount.Do(calls); err != nil {
 		logger.Error(err, "E2E apparmor test failed")
 		os.Exit(1)
