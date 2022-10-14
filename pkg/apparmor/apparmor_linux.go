@@ -85,6 +85,9 @@ func (a *AppArmor) Enforceable() (bool, error) {
 func (a *AppArmor) DeletePolicy(policyName string) error {
 	a.opts.logger.V(2).Info(fmt.Sprintf("policy name: %s", policyName))
 
+	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
+
 	var kernel_interface *C.aa_kernel_interface
 
 	cPolicyName := C.CString(policyName)
@@ -118,11 +121,7 @@ func (a *AppArmor) LoadPolicy(fileName string) error {
 	if err != nil {
 		return fmt.Errorf("cannot create tmp file")
 	}
-	defer func() {
-		if err := fd.Close(); err != nil {
-			a.opts.logger.V(1).Info(fmt.Sprintf("closing file: %s", err))
-		}
-	}()
+	defer os.Remove(fd.Name())
 
 	cmd := exec.Command(parserPath, fileName, "-o", fd.Name())
 	a.opts.logger.V(2).Info(fmt.Sprintf("transform policy into binary: %s", cmd.Args))
@@ -132,8 +131,10 @@ func (a *AppArmor) LoadPolicy(fileName string) error {
 		return err
 	}
 
-	var kernel_interface *C.aa_kernel_interface
+	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
 
+	var kernel_interface *C.aa_kernel_interface
 	if C.aa_kernel_interface_new(&kernel_interface, nil, nil) != 0 {
 		return fmt.Errorf("aa_kernel_interface_new")
 	}
