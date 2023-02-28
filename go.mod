@@ -1,8 +1,8 @@
 module github.com/pjbgf/go-apparmor
 
-go 1.18
+go 1.20
 
 require (
 	github.com/go-logr/logr v1.2.3
-	golang.org/x/sys v0.0.0-20221013171732-95e765b1cc43
+	golang.org/x/sys v0.5.0
 )
