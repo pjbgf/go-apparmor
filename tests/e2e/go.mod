@@ -1,6 +1,6 @@
 module github.com/pjbgf/go-apparmor/tests/e2e
 
-go 1.18
+go 1.20
 
 replace github.com/pjbgf/go-apparmor => ../..
 
