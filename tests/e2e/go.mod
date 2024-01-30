@@ -1,6 +1,6 @@
 module github.com/pjbgf/go-apparmor/tests/e2e
 
-go 1.20
+go 1.21
 
 replace github.com/pjbgf/go-apparmor => ../..
 
@@ -11,6 +11,6 @@ require (
 )
 
 require (
-	github.com/go-logr/logr v1.2.3 // indirect
-	golang.org/x/sys v0.5.0 // indirect
+	github.com/go-logr/logr v1.4.1 // indirect
+	golang.org/x/sys v0.16.0 // indirect
 )
