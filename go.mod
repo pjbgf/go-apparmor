@@ -4,5 +4,5 @@ go 1.21
 
 require (
 	github.com/go-logr/logr v1.4.1
-	golang.org/x/sys v0.16.0
+	golang.org/x/sys v0.17.0
 )
