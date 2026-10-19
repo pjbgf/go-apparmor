@@ -1,4 +1,4 @@
-FROM golang:1.25-alpine
+FROM golang:1.27-alpine
 
 RUN apk add gcc build-base \
     apparmor-utils libapparmor libapparmor-dev
